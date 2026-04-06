@@ -1,0 +1,47 @@
+[
+  {
+    "model": "tabpfn",
+    "f1": 0.0,
+    "auc_roc": 0.5347826086956522,
+    "train_time_s": 1.7380582999903709,
+    "infer_time_per_sample_s": 0.00304273442607602,
+    "note": "stub ExtraTrees (sin paquete tabpfn)"
+  },
+  {
+    "model": "decision_tree",
+    "f1": 0.34285714285714286,
+    "auc_roc": 0.596376811594203,
+    "train_time_s": 0.015050399990286678,
+    "infer_time_per_sample_s": 2.5783606793456634e-05
+  },
+  {
+    "model": "knn",
+    "f1": 0.0,
+    "auc_roc": 0.5594202898550724,
+    "train_time_s": 0.009448700002394617,
+    "infer_time_per_sample_s": 0.001246268852407754
+  },
+  {
+    "model": "gbm",
+    "f1": 0.125,
+    "auc_roc": 0.6072463768115942,
+    "brier": 0.17987007963366872,
+    "train_time_s": 11.521092699986184,
+    "infer_time_per_sample_s": 0.0009557868852127405
+  },
+  {
+    "model": "logistic_regression",
+    "f1": 0.2777777777777778,
+    "auc_roc": 0.5840579710144927,
+    "train_time_s": 0.03478630000608973,
+    "infer_time_per_sample_s": 4.289016369959248e-05
+  },
+  {
+    "model": "xgboost",
+    "f1": 0.4444444444444444,
+    "auc_roc": 0.6753623188405797,
+    "auc_pr": 0.4217525008626659,
+    "train_time_s": 0.09433260001242161,
+    "infer_time_per_sample_s": 4.458360633522761e-05
+  }
+]

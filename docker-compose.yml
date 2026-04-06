@@ -1,0 +1,126 @@
+# Stack completo Salud Digital IA — Heart Disease + FHIR HAPI + MLflow + Frontend (TLS :3443)
+#
+# 1) Generar modelos (primera vez o tras cambios):
+#    docker compose --profile train run --rm train-models
+# 2) Levantar todo:
+#    docker compose up --build -d
+#
+# URLs: Dashboard http://localhost:3000 · https://localhost:3443 · FHIR :8080 · MLflow :5000
+# API ML (solo vía Nginx): /ml-api/* en los puertos del frontend
+
+services:
+  fhir-db:
+    image: postgres:15-alpine
+    container_name: fhir-db
+    volumes:
+      - fhir_pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: hapi
+      POSTGRES_USER: hapi
+      POSTGRES_PASSWORD: hapi_2025
+    networks:
+      - fhir-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fhir-server:
+    image: hapiproject/hapi:latest
+    container_name: fhir-server
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://fhir-db:5432/hapi
+      SPRING_DATASOURCE_USERNAME: hapi
+      SPRING_DATASOURCE_PASSWORD: hapi_2025
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      HAPI_FHIR_FHIR_VERSION: R4
+    depends_on:
+      fhir-db:
+        condition: service_healthy
+    networks:
+      - fhir-net
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.12.2
+    container_name: mlflow
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri file:///mlruns --default-artifact-root file:///mlruns/artifacts
+    volumes:
+      - mlflow_data:/mlruns
+    networks:
+      - fhir-net
+
+  train-models:
+    build:
+      context: ./training
+      dockerfile: Dockerfile
+    profiles: ["train"]
+    container_name: train-models
+    environment:
+      DATA_DIR: /data
+      MODELS_DIR: /models
+    volumes:
+      - ./data:/data
+      - ./ai-service/models:/models
+    networks:
+      - fhir-net
+
+  ai-service:
+    build: ./ai-service
+    container_name: ai-service
+    expose:
+      - "8000"
+    environment:
+      MODELS_DIR: /app/models
+      FHIR_BASE_URL: http://fhir-server:8080/fhir
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      ROOT_PATH: /ml-api
+      ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,https://localhost:3443,https://127.0.0.1:3443
+      TRUSTED_HOSTS: "*"
+      FHIR_TLS_VERIFY: "true"
+    volumes:
+      - ./ai-service/models:/app/models
+    depends_on:
+      - fhir-server
+      - mlflow
+    networks:
+      - fhir-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import json,urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8000/health'); d=json.load(r); raise SystemExit(0 if d.get('status')=='ok' else 1)",
+        ]
+      interval: 15s
+      timeout: 8s
+      retries: 25
+      start_period: 90s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        FHIR_URL: http://localhost:8080/fhir
+    container_name: salud-frontend
+    ports:
+      - "3000:3000"
+      - "3443:3443"
+    depends_on:
+      ai-service:
+        condition: service_healthy
+    networks:
+      - fhir-net
+
+volumes:
+  fhir_pgdata: {}
+  mlflow_data: {}
+
+networks:
+  fhir-net:
+    driver: bridge
