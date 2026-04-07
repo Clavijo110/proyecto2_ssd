@@ -2,7 +2,7 @@
   "use strict";
 
   var origin = window.location.origin;
-  var prefix = typeof window.AI_API_PREFIX !== "undefined" ? window.AI_API_PREFIX : "/ml-api";
+  var prefix = typeof window.AI_API_PREFIX !== "undefined" ? window.AI_API_PREFIX : "/api";
   var AI_BASE;
   if (typeof window.ML_API_DIRECT === "string" && window.ML_API_DIRECT.length) {
     AI_BASE = window.ML_API_DIRECT.replace(/\/$/, "");
@@ -10,7 +10,7 @@
     AI_BASE = origin.replace(/\/$/, "") + (prefix.startsWith("/") ? prefix : "/" + prefix);
   }
   var FHIR_BASE =
-    typeof window.FHIR_URL !== "undefined" ? window.FHIR_URL : "http://localhost:8080/fhir";
+    typeof window.FHIR_URL !== "undefined" ? window.FHIR_URL : origin.replace(/\/$/, "") + "/fhir";
 
   var linkFhir = document.getElementById("linkFhir");
   var linkApiDocs = document.getElementById("linkApiDocs");

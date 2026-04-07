@@ -23,7 +23,7 @@ def main():
     else:
         X_tr, y_tr = X_train, y_train
 
-    clf = TabPFNClassifier(device="cpu", N_ensemble_configurations=32)
+    clf = TabPFNClassifier(device="cpu")
 
     t0 = time.perf_counter()
     clf.fit(X_tr.astype(np.float32), y_tr)

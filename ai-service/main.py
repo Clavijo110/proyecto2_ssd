@@ -32,7 +32,11 @@ from pydantic import BaseModel, Field, field_validator
 
 _MODEL_DEFAULT = Path(__file__).resolve().parent / "models"
 MODELS_DIR = Path(os.getenv("MODELS_DIR", str(_MODEL_DEFAULT)))
-FHIR_BASE_URL = os.getenv("FHIR_BASE_URL", "http://fhir-server:8080/fhir").rstrip("/")
+_port = os.getenv("PORT")
+_default_fhir = (
+    f"http://127.0.0.1:{_port}/fhir" if _port else "http://fhir-server:8080/fhir"
+)
+FHIR_BASE_URL = os.getenv("FHIR_BASE_URL", _default_fhir).rstrip("/")
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "")
 FHIR_TLS_VERIFY = os.getenv("FHIR_TLS_VERIFY", "true").lower() in ("1", "true", "yes")
 ROOT_PATH = os.getenv("ROOT_PATH", "").rstrip("/") or ""
